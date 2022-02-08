@@ -1,0 +1,252 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Sep  4 15:59:17 2020
+
+@author: lmun373
+"""
+
+###############################################################################
+########                   Import Libraries                             #######
+###############################################################################
+import brian2 as b2
+from brian2 import mV, ms, ufarad, cm, umetre, volt, second, msiemens, siemens, nS, pA, TimedArray
+import numpy as np
+import parameters
+from parameters import *
+import functions as fl
+import matplotlib.pyplot as plt
+import scipy
+from scipy.signal import find_peaks
+
+from mpl_toolkits.mplot3d import Axes3D
+
+b2.start_scope()
+b2.prefs.codegen.target = 'numpy'
+
+###############################################################################
+########                     Neuron Equations                           #######
+###############################################################################
+Transmitters = ['AMPA', 'AMPA', 'GABAA']
+firing_array = np.zeros([4, 11])
+
+input_values = np.linspace(65, 165, 11)
+
+# for idx, i_val in enumerate(input_values):
+b2.start_scope()
+neurons = b2.NeuronGroup(4, parameters.eqs,
+                         threshold='v > theta',
+                         #          reset = 'v = theta_eq',
+                         method='rk4',
+                         refractory='v > theta')
+
+Thalamus = neurons[0:1]
+MPE = neurons[1:2]
+MP5 = neurons[2:3]
+MPI = neurons[3:4]
+
+Thalamus.layer = 'THA'
+MPE.layer = 'L23E0'
+MP5.layer = 'L5E0'
+MPI.layer = 'L23I0'
+
+fl.initialise_neurongroups(neurons)
+
+parameters.I_array[20:] = 100  ##### Change this value
+
+'''I_array = np.zeros(250) #250ms run time
+pulses = list(range(20, 230, 15))
+I = 100
+for i in pulses:
+    I_array[i] = I'''
+
+I_input = TimedArray(I_array * mV, dt=1 * ms)
+#print('Running with input value of {}'.format(100))
+
+###############################################################################
+########                         Monitors                               #######
+###############################################################################
+S1 = b2.SpikeMonitor(Thalamus, variables='v')
+S2 = b2.SpikeMonitor(MPE, variables='v')
+S3 = b2.SpikeMonitor(MP5, variables='v')
+S4 = b2.SpikeMonitor(MPI, variables='v')
+M_test = b2.StateMonitor(neurons, ['v', 'I_in'], record=True)
+M1 = b2.StateMonitor(Thalamus, ['v', 'theta', 'I_syn'], record=True)
+M2 = b2.StateMonitor(MPE, ['v', 'theta'], record=True)
+M3 = b2.StateMonitor(MP5, ['v', 'theta'], record=True)
+M4 = b2.StateMonitor(MPI, ['v', 'theta'], record=True)
+
+###############################################################################
+########                         Run Model                              #######
+###############################################################################
+net = b2.Network(b2.collect())  # Automatically add visible objects
+# net.add(synapses_group)           #Manually add list of synapses
+net.run(250*ms, profile=True, report='text')
+net.profiling_info
+#print(b2.profiling_summary(net=net, show=10))
+
+###############################################################################
+########                         Plotting                               #######
+###############################################################################
+
+'''plt.figure()
+plt.plot(M_test.t/b2.ms, M_test.I_in[0])
+plt.xlabel('Time (ms)')
+plt.ylabel('Input Voltage (mV)')
+
+fig, axs = plt.subplots(2, 2, figsize = (10,10))
+#fig.suptitle('Single Neuron Resposes to Input Voltage {}'.format(i_val))
+axs[0,0].plot(M1.t/b2.ms, M1.v[0], 'C0-', label='Tha')
+axs[0,0].set_title('Thalamus')
+axs[0,1].plot(M2.t/b2.ms, M2.v[0], 'C1-', label='MPE')
+axs[0,1].set_title('MPE')
+axs[1,0].plot(M3.t/b2.ms, M3.v[0], 'C2-', label='MP5')
+axs[1,0].set_title('MP5')
+axs[1,1].plot(M4.t/b2.ms, M4.v[0], 'C3-', label='MPI')
+axs[1,1].set_title('MPI')
+for ax in axs.flat:
+    ax.set(xlabel = 'Time (ms)', ylabel='Membrane Potential (mV)')
+for ax in axs.flat:
+    ax.label_outer()
+
+Monitors = [M1, M2, M3, M4]
+Firing_Rates = []
+for M in Monitors:
+    peak_indices, peak_valuesdict = find_peaks(M.v[0])
+    Firing_Rates.append(len(peak_indices)/0.150)
+
+#firing_array[:,idx] = Firing_Rates
+
+plt.figure()
+labels = ['Thalamus', 'MPE', 'MP5', 'MPI']
+for j in range(firing_array.shape[0]):
+    plt.plot(input_values, firing_array[j,:], label = labels[j])
+plt.legend()
+plt.xlabel('Input Magnitude (mV)')
+plt.ylabel('Firing Rate (hz)')
+'''  # plt.plot(M2.t[1300:3000]/b2.ms, M2.theta[0][1300:3000], 'C1-', label='theta')
+# plt.plot(M1.t[1300:3000]/b2.ms, M1.I_syn[0][1300:3000], 'C2-', label='I_syn')
+# plt.plot(M1.t[1300:3000]/b2.ms, M1.g_AMPA[0][1300:3000], 'C3-', label='g_AMPA')
+# plt.plot(S1.t/b2.ms, S1.i, 'ob')
+
+# Plotting 3 neurons
+# fig, ax = plt.subplots(4, 1, figsize=(12,16), sharex = True)
+
+# ax[0].plot(M1.t[4000:6000]/b2.ms, M1.v[0][4000:6000], 'C0-', label='THA')
+# ax[0].plot(M1.t[4000:6000]/b2.ms, M1.theta[0][4000:6000], 'C1.', label='theta')
+# ax[1].plot(M2.t[4000:6000]/b2.ms, M2.v[0][4000:6000], 'C2-', label='MPE')
+# ax[1].plot(M2.t[4000:6000]/b2.ms, M2.theta[0][4000:6000], 'C1.', label='theta')
+# ax[2].plot(M3.t[4000:6000]/b2.ms, M3.v[0][4000:6000], 'C3-', label='MP5')
+# ax[2].plot(M3.t[4000:6000]/b2.ms, M3.theta[0][4000:6000], 'C1.', label='theta')
+# ax[3].plot(M4.t[4000:6000]/b2.ms, M3.v[0][4000:6000], 'C3-', label='MPI')
+# ax[3].plot(M4.t[4000:6000]/b2.ms, M3.theta[0][4000:6000], 'C1.', label='theta')
+# ax[3].set_xlabel('Time (ms)')
+# ax[3].set_ylabel('v')
+# plt.legend();
+
+
+###############################################################################
+########              Plotting only MPE neuron                          #######
+###############################################################################
+# STARTING WITH MPE NEURON, THEN WILL DO THE OTHERS
+# FOR COMPARISON WITH IZH NEURON MODEL (LOGAN)
+# Comment this section out when trying to print other neuron types.
+fig, axs = plt.subplots(2, 1, figsize=(8, 6), gridspec_kw={'height_ratios': [3, 1]})
+
+axs[0].plot(M2.t / b2.ms, M2.v[0], label='MPE', color='k')  # MPE voltage plot
+axs[1].plot(M_test.t / b2.ms, M_test.I_in[0], color='k')  # Current injection plot
+
+axs[0].set_ylabel('Voltage [V]')
+axs[0].set_title('LM MPE neuron', fontsize=20)
+axs[1].set_ylabel('Input current [V] ')
+axs[1].set_xlabel('Time [ms]')
+axs[0].spines['right'].set_visible(False)
+axs[0].spines['top'].set_visible(False)
+axs[0].spines['bottom'].set_visible(False)
+axs[1].spines['right'].set_visible(False)
+axs[1].spines['top'].set_visible(False)
+axs[0].set_xticks([])
+
+plt.show()
+
+print("MPE neuron spiked", len(S2), "times within 180ms of 10mV stimulation")
+print(S2.t)
+freq = round((len(S2) / 230) * 1000)
+print('MPE freq', freq)
+
+###############################################################################
+########              Plotting only MPI Neuron                          #######
+###############################################################################
+# FOR COMPARISON WITH IZH NEURON MODEL (LOGAN)
+# Comment this section out when trying to print other neuron types.
+'''fig, axs = plt.subplots(2, 1, figsize=(8, 6), gridspec_kw={'height_ratios': [3, 1]})
+
+axs[0].plot(M4.t / b2.ms, M4.v[0], label='MPE', color='k')  # MPI voltage plot
+axs[1].plot(M_test.t / b2.ms, M_test.I_in[0], color='k')  # Current injection plot
+
+axs[0].set_ylabel('Voltage [V]')
+axs[0].set_title('LM MPI neuron', fontsize=20)
+axs[1].set_ylabel('Input current [V] ')
+axs[1].set_ylabel('Time [ms]')
+axs[0].spines['right'].set_visible(False)
+axs[0].spines['top'].set_visible(False)
+axs[0].spines['bottom'].set_visible(False)
+axs[1].spines['right'].set_visible(False)
+axs[1].spines['top'].set_visible(False)
+axs[0].set_xticks([])
+
+plt.show()
+
+print("MPI neuron spiked", len(S4), "times within 230ms of 10mV stimulation")
+print(S4.t)'''
+
+###############################################################################
+########              Plotting only THA Neuron                          #######
+###############################################################################
+# FOR COMPARISON WITH IZH NEURON MODEL (LOGAN)
+# Comment this section out when trying to print other neuron types.
+'''fig, axs = plt.subplots(2, 1, figsize=(8, 6), gridspec_kw={'height_ratios': [3, 1]})
+
+axs[0].plot(M1.t / b2.ms, M1.v[0], label='THA', color='k')  # THA voltage plot
+axs[1].plot(M_test.t / b2.ms, M_test.I_in[0], color='k')  # Current injection plot
+
+axs[0].set_ylabel('Voltage [V]')
+axs[0].set_title('LM THA neuron', fontsize=20)
+axs[1].set_ylabel('Input current [V] ')
+axs[1].set_ylabel('Time [ms]')
+axs[0].spines['right'].set_visible(False)
+axs[0].spines['top'].set_visible(False)
+axs[0].spines['bottom'].set_visible(False)
+axs[1].spines['right'].set_visible(False)
+axs[1].spines['top'].set_visible(False)
+axs[0].set_xticks([])
+
+plt.show()
+
+print("THA neuron spiked", len(S1), "times within 230ms of 10mV stimulation")
+print(S1.t)
+'''
+###############################################################################
+########              Plotting only MP5 Neuron                          #######
+###############################################################################
+# FOR COMPARISON WITH IZH NEURON MODEL (LOGAN)
+# Comment this section out when trying to print other neuron types.
+'''fig, axs = plt.subplots(2, 1, figsize=(8, 6), gridspec_kw={'height_ratios': [3, 1]})
+
+axs[0].plot(M3.t / b2.ms, M3.v[0], label='MP5', color='k')  # THA voltage plot
+axs[1].plot(M_test.t / b2.ms, M_test.I_in[0], color='k')  # Current injection plot
+
+axs[0].set_ylabel('Voltage [V]')
+axs[0].set_title('LM MP5 neuron', fontsize=20)
+axs[1].set_ylabel('Input current [V] ')
+axs[1].set_ylabel('Time [ms]')
+axs[0].spines['right'].set_visible(False)
+axs[0].spines['top'].set_visible(False)
+axs[0].spines['bottom'].set_visible(False)
+axs[1].spines['right'].set_visible(False)
+axs[1].spines['top'].set_visible(False)
+axs[0].set_xticks([])
+
+plt.show()
+
+print("THA neuron spiked", len(S3), "times within 230ms of 10mV stimulation")
+print(S3.t)'''
