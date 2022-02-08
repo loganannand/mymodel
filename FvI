@@ -1,0 +1,28 @@
+import matplotlib.pyplot as plt
+from brian2 import *
+
+Stimulus_strengths = list(range(10, 110, 10))
+# MPE
+IZH_MPE_frequencies = [57, 117, 183, 248, 313, 374, 439, 500, 561, 622]
+IZH_MPI_frequencies = [130, 304, 452, 591, 722, 843, 965, 1078, 1191, 1300]
+IZH_THA_frequencies = IZH_MPI_frequencies  # Same parameters
+IZH_MP5_frequencies = []
+# MPI
+LM_MPE_frequencies = []
+LM_MPI_frequencies = []
+LM_THA_frequencies = LM_MPI_frequencies  # Same parameters
+LM_MP5_frequencies = []
+
+# Plots
+# MPE neurons
+plt.plot(Stimulus_strengths, IZH_MPE_frequencies, color='k', linewidth=0.5)
+plt.title('IZH & MPE neuron frequency vs stim strength')
+plt.ylabel('frequencies [Hz]')
+plt.xlabel('stimulus strengths [mV]')
+plt.legend()
+plt.show()
+# MPI neurons
+
+# THA neurons
+
+# MP5 neurons
