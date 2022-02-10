@@ -51,13 +51,13 @@ MPI.layer = 'L23I0'
 
 fl.initialise_neurongroups(neurons)
 
-parameters.I_array[20:] = 100  ##### Change this value
+#parameters.I_array[20] = 100  ##### Change this value
 
-'''I_array = np.zeros(250) #250ms run time
+I_array = np.zeros(250) #250ms run time
 pulses = list(range(20, 230, 15))
-I = 100
+I = 60
 for i in pulses:
-    I_array[i] = I'''
+    I_array[i] = I
 
 I_input = TimedArray(I_array * mV, dt=1 * ms)
 #print('Running with input value of {}'.format(100))
@@ -173,6 +173,7 @@ print(S2.t)
 freq = round((len(S2) / 230) * 1000)
 print('MPE freq', freq)
 
+
 ###############################################################################
 ########              Plotting only MPI Neuron                          #######
 ###############################################################################
@@ -238,7 +239,7 @@ axs[1].plot(M_test.t / b2.ms, M_test.I_in[0], color='k')  # Current injection pl
 axs[0].set_ylabel('Voltage [V]')
 axs[0].set_title('LM MP5 neuron', fontsize=20)
 axs[1].set_ylabel('Input current [V] ')
-axs[1].set_ylabel('Time [ms]')
+axs[1].set_xlabel('Time [ms]')
 axs[0].spines['right'].set_visible(False)
 axs[0].spines['top'].set_visible(False)
 axs[0].spines['bottom'].set_visible(False)
