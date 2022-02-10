@@ -5,6 +5,8 @@ Author: Logan Annand, lann591@aucklanduni.ac.nz.
 
 from brian2 import *
 import matplotlib.pyplot as plt
+'''frequencies = []
+for i in list(range(10,220, 10)):'''
 
 start_scope()
 prefs.codegen.target = 'numpy'
@@ -52,7 +54,11 @@ IZeqs = '''
 
 reset_eqs = 'v = c; u = u + d'
 
-I_app_fn = TimedArray([I_off, I_on], dt=I_app_start)
+'''I_matrix = np.zeros((250, 2))
+I_matrix[100:, 0] = 10 * mV
+I_app_fn = TimedArray(I_matrix * mV, dt=1*ms)
+'''
+
 
 '''I_array = np.zeros(800)  # 250ms run time
 pulses = list(range(50, 751))
@@ -66,30 +72,49 @@ I = 10
 I_array = np.zeros(360)
 stim_range = list(range(170, 290))
 for i in stim_range:
-    I_array[i] = I
-#I_app_fn = TimedArray(I_array * mV, dt=1 * ms)'''
+    I_array[i] = I'''
+I_app_fn = TimedArray([I_off, I_on], dt=1 * ms)
 
-N = 1  # Number of neurons
-G = NeuronGroup(N, IZeqs, threshold='v > v_th', reset=reset_eqs, method='euler')
+
+G = NeuronGroup(1, IZeqs, threshold='v > v_th', reset=reset_eqs, method='euler')
 G.v = c
 G.u = 0 * mV
 
+M = StateMonitor(G, variables=['v', 'I_app', 'u'], record=True)
+spikemon = SpikeMonitor(G)
 
-# Freq vs input code
-'''inputs = list(range(10, 110, 10)) *mV # Range of input currents from 10mV to 80mV
-frequency = []
+
+#frequencies.append((len(spikemon)/150)*1000)
+#### IZHeqs2
+IZeqs2 = '''
+            dv/dt =   (C1*(v**2) + C2*v + C3 - u + C5*I2_app) / ms: volt
+            du/dt = a * (b * v - u) : volt
+            I2_app = I2_app_fn(t) : volt
 '''
+neuron2matrix = np.zeros(250)
+I2_app_fn = TimedArray(neuron2matrix * mV, dt = 1*ms)
+
+# Neuron group 2
+G2 = NeuronGroup(1, IZeqs2, threshold='v > v_th', reset=reset_eqs, method='euler')
+G.v = c
+G.u = 0 * mV
+
+Mon2 = StateMonitor(G2, variables=['v'], record=True)
+spike2 = SpikeMonitor(G2)
+
+
 # Synapses
-'''synapse = Synapses(G, neurongroup2,
-                   model='''s: volt''',
-                   on_pre='v += s')
-synapse.connect(i=[0, 1], j=[0, 1])
-synapse.s = 100. * mV'''
+synapse = Synapses(G, G2, 'w:1',
+                   on_pre='v_post += w*mV')
+synapse.connect(i=0, j=0)
+synapse.w = 20
+synapse.delay = 2*ms
+#synapse.s = 100. * mV
 
 
 # Monitors
-M = StateMonitor(G, variables=['v', 'I_app', 'u'], record=True)
-spikemon = SpikeMonitor(G)
+'''M = StateMonitor(G, variables=['v', 'I_app', 'u'], record=True)
+spikemon = SpikeMonitor(G)'''
 run(duration)
 
 # Plotting monitors
@@ -97,16 +122,18 @@ f, axs = plt.subplots(2, 1, figsize=(8, 6), gridspec_kw={'height_ratios': [3, 1]
 
 axs[0].plot(M.t / ms, M.v[0] / mV, 'k')  # Voltage plot
 axs[1].plot(M.t / ms, M[0].I_app / mV, 'k')  # Input current plot
+#axs[1].plot(M.t / ms, Mon2[0].I_app / mV, 'r', linestyle='dashed')
 # axs[2].plot(M.t / ms, M.u[0] / mV, 'k')  # Reset variable plot
-axs[0].plot(M.t / ms, M.v[1] / mV, 'r', linestyle='dashed')
+axs[0].plot(M.t / ms, Mon2.v[0] / mV, 'r', linestyle='dashed')  # Voltage plot
 
-# axs[0].set_ylabel('Voltage [mV]')
-axs[0].set_title('FS', fontsize=18)
-# axs[1].set_ylabel('Input current [mV] ')  # axs[2].set_ylabel('Reset [u]')
-# axs[1].set_xlabel('Time [ms]')
+
+axs[0].set_ylabel('Voltage [mV]')
+axs[0].set_title('RS', fontsize=18)
+axs[1].set_ylabel('Input current [mV] ')  # axs[2].set_ylabel('Reset [u]')
+axs[1].set_xlabel('Time [ms]')
 '''axs[0].set_xlim([160,300])
 axs[1].set_xlim([160,300])'''
-# axs[2].set_xlabel('Time [ms]')
+#axs[2].set_xlabel('Time [ms]')
 axs[0].spines['right'].set_visible(False)
 axs[0].spines['top'].set_visible(False)
 axs[0].spines['bottom'].set_visible(False)
@@ -130,4 +157,5 @@ plt.show()
 print('spike times [ms]', spikemon.t)
 print(len(spikemon.t))
 
-# print(frequencies)
+
+
