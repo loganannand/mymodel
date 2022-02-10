@@ -26,3 +26,66 @@ plt.show()
 # THA neurons
 
 # MP5 neurons
+
+
+
+
+import matplotlib.pyplot as plt
+from brian2 import *
+
+'''
+Stimulus_strengths = list(range(10, 110, 10))
+# MPE
+IZH_MPE_frequencies = [57, 117, 183, 248, 313, 374, 439, 500, 561, 622]
+IZH_MPI_frequencies = [130, 304, 452, 591, 722, 843, 965, 1078, 1191, 1300]
+IZH_THA_frequencies = IZH_MPI_frequencies  # Same parameters
+IZH_MP5_frequencies = []
+# MPI
+LM_MPE_frequencies = [57, 4, 4, 4, 4,]
+LM_MPI_frequencies = []
+LM_THA_frequencies = LM_MPI_frequencies  # Same parameters
+LM_MP5_frequencies = []
+
+# Plots
+# MPE neurons
+plt.plot(Stimulus_strengths, IZH_MPE_frequencies, color='k', linewidth=0.5)
+plt.title('IZH & MPE neuron frequency vs stim strength')
+plt.ylabel('frequencies [Hz]')
+plt.xlabel('stimulus strengths [mV]')
+plt.legend()
+plt.show()
+# MPI neurons
+
+# THA neurons
+
+# MP5 neurons
+'''
+'''
+RS_ISI = [300, 160, 118, 110, 100, 98, 90, 92, 88, 89, 88, 89]
+sitm_time = [172.382, 175.901, 185.352, 196.8, 208.131, 219.466, 230.801, 242.136, 253.471, 264.806, 276.141, 287.476]
+FS_ISI = [172.045, 174.149, 176.451, 178.836, 181.248, 183.668, 186.091,
+          188.515, 190.939, 193.363, 195.787, 198.211, 200.635, 203.059,
+          205.483, 207.907, 210.331, 212.755, 215.179, 217.603, 220.027,
+          222.451, 224.875, 227.299, 229.723, 232.147, 234.571, 236.995,
+          239.419, 241.843, 244.267, 246.691, 249.115, 251.539, 253.963,
+          256.387, 258.811, 261.235, 263.659, 266.083, 268.507, 270.931,
+          273.355, 275.779, 278.203, 280.627, 283.051, 285.475, 287.899,
+          290.381]
+plt.plot(sitm_time, RS_ISI, 'k', label='RS')
+plt.ylim([0, 400])
+plt.show()
+'''
+
+'''#IZH_RS_freqs = [7, 15, 23, 31, 39, 47, 55, 62, 70]  # Corresponding range = 10 - 90 mV NOT SURE IF FS OR RS?????
+#stim_range = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+IZH_RS_number_of_spikes = [9, 18, 28, 38, 48, 58, 67, 76, 86, 95, 103, 112, 121, 129, 138, 146, 155, 163, 171, 180, 188]
+IZH_RS_freq = [60, 120, 187, 253, 320, 387, 447, 507, 573, 633, 687, 747, 807, 860, 920, 973, 1033, 1087, 1140, 1200, 1253]
+stim_range = list(range(10,220, 10))'''
+
+'''for i in IZH_RS_number_of_spikes:
+    print(i)
+    IZH_RS_freq.append(round((i/150)*1000))
+print(IZH_RS_freq)'''
+
+
+
