@@ -1,6 +1,5 @@
 """
 Code to produce meaningful patterns of spiking neurons, defined by the Izhikevich model.
-Author: Logan Annand, lann591@aucklanduni.ac.nz.
 """
 
 from brian2 import *
